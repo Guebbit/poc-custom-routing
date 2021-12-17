@@ -1,7 +1,4 @@
-import {
-  customRouteMap,
-  $route,
-} from '@/plugins/router';
+import { customRouteMap } from '@/plugins/router';
 
 import Home from '@/views/Home.vue';
 import Activities from '@/views/Activities.vue';
@@ -10,7 +7,7 @@ import Dashboard from '@/views/Dashboard.vue';
 import Profile from '@/views/Profile.vue';
 import Shopping from '@/views/Shopping.vue';
 
-$route.routes = [
+export default [
   {
     path: "home",
     component: Home,
@@ -42,5 +39,3 @@ $route.routes = [
     name: "Shopping",
   },
 ] as customRouteMap[];
-
-export default $route

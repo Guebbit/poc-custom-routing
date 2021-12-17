@@ -5,77 +5,54 @@
       @click:route:section="goToSection"
     />
     <v-main>
-      <navigationBreadcrumbs
-        :urlList="subSections"
-        :current="routeSubsection"
-        @click:route:subsection="goToSubSection"
-      />
       <component :is="routedComponent" />
-
       <pre>{{queryParameters}}</pre>
-
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-
-import {
-  customRouteMap,
-  rebuildUrl,
-  goToUrl
-} from '@/plugins/router';
-import $route from '@/router';
-
+import Vue, { VueConstructor } from 'vue';
 import navigationDrawer from '@/components/navigationDrawer.vue';
-import navigationBreadcrumbs from '@/components/navigationBreadcrumbs.vue';
+
+import Router, { customRouteMap } from './plugins/router';
+import routes from './router';
+
+const $route = new Router(routes);
 
 export default Vue.extend({
   name: 'App',
   components: {
     navigationDrawer,
-    navigationBreadcrumbs,
   },
   data: () => ({
-    defaultRoute: 'Home' as string,
+    defaultRoute: 'home' as string,
     sections: $route.routes as customRouteMap[],
     queryParameters: $route.query as Record<string,string>,
-    subSections: [
-      "uno",
-      "due",
-      "tre"
-    ],
   }),
   computed: {
     routeSection () :string {
-      const { section = this.defaultRoute } = this.queryParameters;
-      return section;
+      const { section = this.defaultRoute } = $route.query;
+      return section.toLowerCase();
     },
-    routeSubsection () :string {
-      const { subsection = '' } = this.queryParameters;
-      return subsection;
-    },
-    routedComponent() :any {
-      const { component } = $route.routes.find(({ path } :customRouteMap) => {
-          return path === this.routeSection;
-        }) || 
-        $route.routes.find(({ path } :customRouteMap) => {
-          return path === '/'
-        }) || 
-        $route.routes[0];
+    routedComponent() :VueConstructor<Vue> {
+      const { component } = $route.routes.find(({ name }: customRouteMap) => {
+        return name.toLowerCase() === this.routeSection
+      }) || $route.defaultRoute;
       return component;
     },
   },
   methods: {
-    goToSection(path :string) :void {
-      $route.query.section = path;
-      goToUrl(rebuildUrl())
+    goToSection(name :string) :void {
+      $route.query.section = name;
+      $route.refreshRoute()
     },
-    goToSubSection(path :string) :void {
-      $route.query.subsection = path;
-      goToUrl(rebuildUrl())
-    }
   },
+  mounted() {
+    if($route.query.hasOwnProperty('section'))
+      return;
+    $route.query.section = this.defaultRoute;
+    $route.refreshRoute(true);
+  }
 });
 </script>
